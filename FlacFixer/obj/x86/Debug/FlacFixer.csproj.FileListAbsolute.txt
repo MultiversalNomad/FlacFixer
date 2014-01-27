@@ -1,0 +1,4 @@
+E:\JPLC Data\Projects\C#\FlacFixer\FlacFixer\bin\Debug\FlacFixer.exe
+E:\JPLC Data\Projects\C#\FlacFixer\FlacFixer\bin\Debug\FlacFixer.pdb
+E:\JPLC Data\Projects\C#\FlacFixer\FlacFixer\obj\x86\Debug\FlacFixer.exe
+E:\JPLC Data\Projects\C#\FlacFixer\FlacFixer\obj\x86\Debug\FlacFixer.pdb
