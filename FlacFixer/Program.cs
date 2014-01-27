@@ -1,5 +1,5 @@
 /*
- * Program Title: FLACFixer
+ * Program Title: FlacFixer
  * Version: 0.9
  * Author: Joseph Cassano (http://jplc.ca)
  * Year: 2014
@@ -25,15 +25,14 @@ using System.IO;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace FLACFixer
+namespace FlacFixer
 {
 	class MainClass
 	{
-		public static FileInfo exeFile;
-
 		public static void Main(string[] args)
 		{
-			Console.WriteLine("FLACFixer STARTED!");
+			Console.OutputEncoding = System.Text.Encoding.UTF8;
+			Console.WriteLine("FlacFixer STARTED!");
 			if (args.Length > 0)
 			{
 				string filePath = args[0];
@@ -61,55 +60,132 @@ namespace FLACFixer
 				}
 				Fixer.Run(filePath, forceOverwrite, keepTemp, deleteOriginal);
 			}
-			Console.WriteLine("FLACFixer DONE!");
-			exeFile = new FileInfo(System.Reflection.Assembly.GetEntryAssembly().Location);
-			Console.WriteLine(exeFile.FullName);
-			Config config;
-			string xmlPath = String.Concat(exeFile.DirectoryName, @"\config.xml");
-         	if (!File.Exists(xmlPath))
-			{
-				config = new Config();
-				SerializeToXML(config, xmlPath);
-			}
-			else
-			{
-				config = DeserializeFromXML(xmlPath);
-			}
-			Console.WriteLine(config.exeFlacPath);
-			Console.WriteLine(config.exeMetaFlacPath);
-			Console.Write("Press any key to close... ");
-			Console.ReadKey();
-		}
-
-		static public void SerializeToXML(Config config, string xmlPath)
-		{
-			XmlSerializer serializer = new XmlSerializer(typeof(Config));
-			TextWriter textWriter = new StreamWriter(xmlPath, false, System.Text.Encoding.UTF8);
-			serializer.Serialize(textWriter, config);
-			textWriter.Close();
-		}
-
-		static public Config DeserializeFromXML(string xmlPath)
-		{
-			XmlSerializer deserializer = new XmlSerializer(typeof(Config));
-			TextReader textReader = new StreamReader(xmlPath, System.Text.Encoding.UTF8);
-			Config config;
-			config = (Config)deserializer.Deserialize(textReader);
-			textReader.Close();
-			return config;
+			Console.WriteLine("FlacFixer DONE!");
+			//Console.Write("Press any key to close... ");
+			//Console.ReadKey();
+			//Console.Write("\n");
 		}
 	}
 
-	public class Config
+	public static class ConfigManager
 	{
-		public string exeFlacPath;
+		public static string exeFlacPath{ get; private set; }
+		public static string exeMetaFlacPath{ get; private set; }
 
-		public string exeMetaFlacPath;
-
-		public Config()
+		private static string xmlPath;
+		private static Config currentConfig;
+		private static Config CurrentConfig
 		{
-			exeFlacPath = @"C:\Program Files (x86)\FLAC Frontend\tools\flac.exe";
-			exeMetaFlacPath = @"C:\Program Files (x86)\FLAC Frontend\tools\metaflac.exe";
+			get
+			{
+				return currentConfig;
+			}
+			set
+			{
+				currentConfig = value;
+				exeFlacPath = currentConfig.exeFlacPath;
+				exeMetaFlacPath = currentConfig.exeMetaFlacPath;
+			}
+		}
+
+		static ConfigManager()
+		{
+			xmlPath = String.Concat(new FileInfo(System.Reflection.Assembly.GetEntryAssembly().Location).DirectoryName, @"\config.xml");
+			CurrentConfig = new Config();
+		}
+
+		static public void SerializeToXml()
+		{
+			XmlSerializer serializer = new XmlSerializer(typeof(Config));
+			TextWriter textWriter = new StreamWriter(xmlPath, false, System.Text.Encoding.UTF8);
+			serializer.Serialize(textWriter, CurrentConfig);
+			textWriter.Close();
+		}
+
+		static public void DeserializeFromXml()
+		{
+			if (!File.Exists(xmlPath))
+			{
+				Config tempConfig = new Config();
+				if (CurrentConfig != tempConfig)
+				{
+					CurrentConfig = tempConfig;
+				}
+				SerializeToXml();
+			}
+			else
+			{
+				XmlSerializer deserializer = new XmlSerializer(typeof(Config));
+				TextReader textReader = new StreamReader(xmlPath, System.Text.Encoding.UTF8);
+				CurrentConfig = (Config)deserializer.Deserialize(textReader);
+				textReader.Close();
+			}
+		}
+
+		public class Config
+		{
+			public string exeFlacPath;
+			public string exeMetaFlacPath;
+
+			public Config()
+			{
+				exeFlacPath = @"C:\Program Files (x86)\FLAC Frontend\tools\flac.exe";
+				exeMetaFlacPath = @"C:\Program Files (x86)\FLAC Frontend\tools\metaflac.exe";
+			}
+
+			public override bool Equals(object obj)
+			{
+				if (obj == null)
+				{
+					return false;
+				}
+
+				Config config = obj as Config;
+				/*
+				if ((object)config == null)
+				{
+					return false;
+				}
+
+				return (exeFlacPath == config.exeFlacPath) && (exeMetaFlacPath == config.exeMetaFlacPath);
+				*/
+				return Equals(config);
+			}
+
+			public bool Equals(Config config)
+			{
+				if ((object)config == null)
+				{
+					return false;
+				}
+
+				return (exeFlacPath == config.exeFlacPath) && (exeMetaFlacPath == config.exeMetaFlacPath);
+			}
+
+			public override int GetHashCode()
+			{
+				return exeFlacPath.GetHashCode() ^ exeMetaFlacPath.GetHashCode();
+			}
+
+			public static bool operator ==(Config configA, Config configB)
+			{
+				if (object.ReferenceEquals(configA, configB))
+				{
+					return true;
+				}
+
+				if (((object)configA == null) || ((object)configB == null))
+				{
+					return false;
+				}
+
+				return (configA.exeFlacPath == configB.exeFlacPath) && (configA.exeMetaFlacPath == configB.exeMetaFlacPath);
+			}
+
+			public static bool operator !=(Config configA, Config configB)
+			{
+				return !(configA == configB);
+			}
 		}
 	}
 
@@ -117,7 +193,7 @@ namespace FLACFixer
 	{
 		public static Process process;
 		public static ProcessStartInfo startInfo;
-		public static string dirFlac;
+		//public static string dirFlac;
 		public static FileInfo exeFlac;
 		public static FileInfo exeMetaFlac;
 
@@ -132,9 +208,12 @@ namespace FLACFixer
 		{
 			process = new Process();
 			startInfo = new ProcessStartInfo();
-			dirFlac = @"C:\Program Files (x86)\FLAC Frontend\tools\";
-			exeFlac = new FileInfo(String.Concat(dirFlac, "flac.exe"));
-			exeMetaFlac = new FileInfo(String.Concat(dirFlac, "metaflac.exe"));
+			//dirFlac = @"C:\Program Files (x86)\FLAC Frontend\tools\";
+			//exeFlac = new FileInfo(String.Concat(dirFlac, "flac.exe"));
+			//exeMetaFlac = new FileInfo(String.Concat(dirFlac, "metaflac.exe"));
+			ConfigManager.DeserializeFromXml();
+			exeFlac = new FileInfo(ConfigManager.exeFlacPath);
+			exeMetaFlac = new FileInfo(ConfigManager.exeMetaFlacPath);
 		}
 
 		public static void Run(string initialFilePath, bool forceOverwrite, bool keepTemp, bool deleteOriginal)

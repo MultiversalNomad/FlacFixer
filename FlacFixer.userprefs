@@ -2,7 +2,7 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.Workbench ActiveDocument="FlacFixer\Program.cs">
     <Files>
-      <File FileName="FlacFixer\Program.cs" Line="10" Column="22" />
+      <File FileName="FlacFixer\Program.cs" Line="39" Column="33" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
