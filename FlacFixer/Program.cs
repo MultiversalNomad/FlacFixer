@@ -1,12 +1,15 @@
 /*
  * Program Title: FlacFixer
- * Version: 0.9
+ * Version: 0.9.0.1
  * Author: Joseph Cassano (http://jplc.ca)
  * Year: 2014
  * Description:
  * 		Interface for using the flac and metaflac programs
  * 		to create proper FLAC files out of FLAC or raw
  * 		files with bad headers.
+ * 		File paths for the flac and metaflac programs
+ * 		are stored in a config.xml file in the same
+ * 		directory as the executable for FlacFixer.
  * License:
  * 		MIT License (see LICENSE.txt in the project's root
  * 		directory for details).
@@ -15,6 +18,9 @@
  * References:
  * 		System
  * 		System.Xml
+ * External programs used in this program:
+ * 		flac
+ * 		metaflac
  * Confirmed Compatibility:
  * 		Windows 7 64-bit
  */
@@ -193,7 +199,6 @@ namespace FlacFixer
 	{
 		public static Process process;
 		public static ProcessStartInfo startInfo;
-		//public static string dirFlac;
 		public static FileInfo exeFlac;
 		public static FileInfo exeMetaFlac;
 
@@ -208,9 +213,6 @@ namespace FlacFixer
 		{
 			process = new Process();
 			startInfo = new ProcessStartInfo();
-			//dirFlac = @"C:\Program Files (x86)\FLAC Frontend\tools\";
-			//exeFlac = new FileInfo(String.Concat(dirFlac, "flac.exe"));
-			//exeMetaFlac = new FileInfo(String.Concat(dirFlac, "metaflac.exe"));
 			ConfigManager.DeserializeFromXml();
 			exeFlac = new FileInfo(ConfigManager.exeFlacPath);
 			exeMetaFlac = new FileInfo(ConfigManager.exeMetaFlacPath);
@@ -222,7 +224,6 @@ namespace FlacFixer
 			if (File.Exists(initialFile.FullName))
 			{
 				FileInfo initialFlac;
-				Console.WriteLine(initialFile.Extension);
 				if (initialFile.Extension != ExtFlac)
 				{
 					byte[] byteArray = File.ReadAllBytes(initialFile.FullName);
@@ -276,11 +277,10 @@ namespace FlacFixer
 							{
 								bitsPerSample = wantedString;
 							}
-							Console.WriteLine(wantedString);
 						}
 					}
 				}
-				//
+
 				string overwriteString;
 				if (forceOverwrite)
 				{
@@ -290,14 +290,14 @@ namespace FlacFixer
 				{
 					overwriteString = "";
 				}
-				//
+
 				FileInfo tempRaw = new FileInfo(String.Concat(initialFile.DirectoryName, @"\TempOutput", ExtRaw));
 				startInfo.Arguments = String.Concat("/C \"\"", exeFlac.FullName, "\"", overwriteString, " -d \"", initialFlac.FullName, "\" -o \"", tempRaw.FullName, "\" --force-raw-format --endian=little --sign=signed\"");
 				process.StartInfo = startInfo;
 				process.Start();
 				process.WaitForExit();
 				process.Close();
-				//
+
 				if (deleteOriginal)
 				{
 					File.Delete(initialFile.FullName);
@@ -327,7 +327,7 @@ namespace FlacFixer
 				process.Start();
 				process.WaitForExit();
 				process.Close();
-				//
+
 				startInfo.FileName = String.Concat(Environment.ExpandEnvironmentVariables("%SystemRoot%"), @"\System32\cmd.exe");
 				startInfo.Arguments = String.Concat("/C \"\"", exeMetaFlac.FullName, "\" \"", finalFlac.FullName, "\" --no-utf8-convert --list\"");
 				outputList = new List<string>(){};
@@ -345,7 +345,7 @@ namespace FlacFixer
 				{
 					Console.WriteLine(line);
 				}
-				//
+
 				if (!keepTemp)
 				{
 					if (File.Exists(initialFlac.FullName))
